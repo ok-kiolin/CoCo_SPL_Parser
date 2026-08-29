@@ -15,29 +15,51 @@ The project consists of:
 ## Project Structure
 
 ```text
-src/
-├── main/
-│   └── java/
-│       └── spl/
-│           └── Main.java
-│
-└── test/
-    └── java/
-        └── spl/
-
-tests/
-├── valid/
-├── invalid/
-└── expected/
-
-examples/
-├── valid/
-└── invalid/
-
-docs/
-├── grammar/
-├── architecture/
-└── testing/
+│   .gitignore
+│   pom.xml
+│   README.md
+│   
+├───docs
+│   ├───architecture
+│   │       architecture.md
+│   │       
+│   ├───grammar
+│   │       productions.md
+│   │       
+│   └───testing
+├───examples
+│   ├───invalid
+│   └───valid
+├───src
+│   ├───main
+│   │   └───java
+│   │       └───spl
+│   │           │   Main.java
+│   │           │   
+│   │           ├───errors
+│   │           │       syntaxException.java
+│   │           │       
+│   │           ├───lexer
+│   │           │       keywords.java
+│   │           │       token.java
+│   │           │       tokenType.java
+│   │           │       
+│   │           ├───parser
+│   │           ├───tree
+│   │           │       node.java
+│   │           │       
+│   │           └───xml
+│   └───test
+│       └───java
+│           └───spl
+│               ├───lexer
+│               ├───parser
+│               ├───tree
+│               └───xml
+└───tests
+    ├───expected
+    ├───invalid
+    └───valid
 
 lexer -> parser -> tree -> xml
 
