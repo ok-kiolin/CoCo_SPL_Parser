@@ -71,7 +71,3 @@ cd CoCo_SPL_Parser
 mvn clean test
 mvn exec:java
 
-#syntax Error outline(example): 
-Syntax Error [line X, column Y]:
-Expected <what was expected>, found <what was actually there>.
-Hint: <plain-language suggestion>
