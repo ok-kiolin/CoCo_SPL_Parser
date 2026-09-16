@@ -1,0 +1,4 @@
+#r :
+void #g ( ) { : : print "hi" ; return
+:
+#g ( ) ;
