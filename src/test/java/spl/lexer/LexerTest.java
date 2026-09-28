@@ -1,5 +1,6 @@
-package spl;
+package spl.lexer;
 
+import spl.errors.SyntaxException;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
@@ -7,17 +8,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class LexerTest {
 
     private List<Token> lex(String s) { return new Lexer().tokenize(s); }
-    private TokenType typeOf(String chunk) { return lex(chunk).get(0).type; }
+    private TokenType typeOf(String chunk) { return lex(chunk).get(0).type(); }
 
     @Test void classifiesKeywords() {
-        assertEquals(TokenType.PRINT, typeOf("print"));
-        assertEquals(TokenType.KW_NUM, typeOf("num"));
-        assertEquals(TokenType.WHILE, typeOf("while"));
+        assertEquals(TokenType.KEYWORD_PRINT, typeOf("print"));
+        assertEquals(TokenType.KEYWORD_NUM, typeOf("num"));
+        assertEquals(TokenType.KEYWORD_WHILE, typeOf("while"));
     }
     @Test void classifiesSymbols() {
-        assertEquals(TokenType.COLON, typeOf(":"));
-        assertEquals(TokenType.LBRACE, typeOf("{"));
-        assertEquals(TokenType.EQUALS, typeOf("="));
+        assertEquals(TokenType.SYMBOL_COLON, typeOf(":"));
+        assertEquals(TokenType.SYMBOL_LBRACE, typeOf("{"));
+        assertEquals(TokenType.SYMBOL_ASSIGN, typeOf("="));
     }
     @Test void classifiesNames() {
         assertEquals(TokenType.NAME, typeOf("#x"));
@@ -32,7 +33,7 @@ class LexerTest {
 
     @Test void acceptsValidNumbers() {
         for (String n : new String[]{"0","42","-42","0.5","-0.5","0.05","1.105","10"})
-            assertEquals(TokenType.NUM, typeOf(n), "should accept " + n);
+            assertEquals(TokenType.NUMBER, typeOf(n), "should accept " + n);
     }
     @Test void rejectsInvalidNumbers() {
         for (String n : new String[]{"-0","00","007","0.0","1.10","2.50","1."})
@@ -45,12 +46,12 @@ class LexerTest {
 
     @Test void endsWithEof() {
         List<Token> t = lex("#x : :");
-        assertEquals(TokenType.EOF, t.get(t.size() - 1).type);
+        assertEquals(TokenType.EOF, t.get(t.size() - 1).type());
     }
     @Test void tracksPositions() {
         Token second = lex("#x\nprint").get(1);
-        assertEquals(2, second.line);
-        assertEquals(1, second.col);
+        assertEquals(2, second.line());
+        assertEquals(1, second.column());
     }
     @Test void splitsWholeProgram() {
         assertEquals(7, lex("#x : : print \"hi\" ;").size());

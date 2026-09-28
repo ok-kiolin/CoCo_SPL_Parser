@@ -1,6 +1,7 @@
 package spl.parser;
 
 import java.util.List;
+import spl.errors.SyntaxException;
 import spl.lexer.Token;
 import spl.lexer.TokenType;
 import spl.tree.Node;
@@ -115,30 +116,109 @@ public final class Parser {
         return node;
     }
 
-    //the skeleton. task 3
+    // Task 3: statements. Nullable ALGO and INPUT still produce empty inner nodes.
     public Node parseAlgo() {
         Node node = Node.inner("ALGO");
-        TokenType t = cursor.peek().type();
-
-        boolean startsInstr = t == TokenType.KEYWORD_PRINT || t == TokenType.KEYWORD_NOP
-                || t == TokenType.KEYWORD_COMMENT ||t == TokenType.NAME
-                || t == TokenType.KEYWORD_IF ||t == TokenType.KEYWORD_WHILE
-                || t == TokenType.KEYWORD_UNTIL ||t == TokenType.KEYWORD_DO;
-
-        if(startsInstr) {
-            //TASK 3
-
-            throw todo("ALGO -> INSTR ; ALGO");
+        if (startsInstruction(cursor.peek().type())) {
+            node.add(parseInstr());
+            node.add(leafFor(cursor.expect(TokenType.SYMBOL_SEMICOLON,
+                    "End each instruction with ';'.")));
+            node.add(parseAlgo());
         }
-
-        return node; //epsilon
-
+        return node;
     }
-    public Node parseInstr()  { throw todo("INSTR"); }
-    public Node parseOutp()   { throw todo("OUTP"); }
-    public Node parseAssign() { throw todo("ASSIGN"); }
-    public Node parseCall()   { throw todo("CALL"); }
-    public Node parseInput()  { throw todo("INPUT"); }
+
+    public Node parseInstr() {
+        Node node = Node.inner("INSTR");
+        switch (cursor.peek().type()) {
+            case KEYWORD_PRINT -> {
+                node.add(leafFor(cursor.expect(TokenType.KEYWORD_PRINT)));
+                node.add(parseOutp());
+            }
+            case KEYWORD_NOP -> node.add(leafFor(cursor.expect(TokenType.KEYWORD_NOP)));
+            case KEYWORD_COMMENT -> {
+                node.add(leafFor(cursor.expect(TokenType.KEYWORD_COMMENT)));
+                node.add(leafFor(cursor.expect(TokenType.STRING,
+                        "A comment must be followed by a quoted string.")));
+            }
+            case NAME -> {
+                Token next = cursor.peek(2);
+                if (next.type() == TokenType.SYMBOL_ASSIGN) node.add(parseAssign());
+                else if (next.type() == TokenType.SYMBOL_LPAREN) node.add(parseCall());
+                else throw new SyntaxException(
+                        "Expected '=' or '(' after a name, found '" + next.lexeme() + "'.",
+                        next.line(), next.column(),
+                        "Use '#x = TERM' for assignment or '#f ( INPUT )' for a call.");
+            }
+            case KEYWORD_IF -> node.add(parseBranch());
+            case KEYWORD_WHILE, KEYWORD_UNTIL, KEYWORD_DO -> node.add(parseLoop());
+            default -> {
+                Token found = cursor.peek();
+                throw new SyntaxException("Expected an instruction, found '" + found.lexeme() + "'.",
+                        found.line(), found.column(), "Start with print, nop, comment, a name, if, while, until, or do.");
+            }
+        }
+        return node;
+    }
+
+    public Node parseOutp() {
+        Node node = Node.inner("OUTP");
+        if (cursor.peek().type() == TokenType.SYMBOL_LPAREN) {
+            node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN)));
+            node.add(parseTerm());
+            node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                    "Close the printed term with ')'.")));
+        } else {
+            node.add(leafFor(cursor.expect(TokenType.STRING,
+                    "Write print STRING or print ( TERM ).")));
+        }
+        return node;
+    }
+
+    public Node parseAssign() {
+        Node node = Node.inner("ASSIGN");
+        node.add(leafFor(cursor.expect(TokenType.NAME)));
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_ASSIGN)));
+        node.add(parseTerm());
+        return node;
+    }
+
+    // Task 4 reuses this method when TERM begins with NAME followed by '('.
+    public Node parseCall() {
+        Node node = Node.inner("CALL");
+        node.add(leafFor(cursor.expect(TokenType.NAME)));
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN,
+                "Open function arguments with '('.")));
+        node.add(parseInput());
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                "Close function arguments with ')'.")));
+        return node;
+    }
+
+    public Node parseInput() {
+        Node node = Node.inner("INPUT");
+        if (startsTerm(cursor.peek().type())) {
+            node.add(parseTerm());
+            node.add(parseInput());
+        }
+        return node;
+    }
+
+    private static boolean startsInstruction(TokenType type) {
+        return switch (type) {
+            case KEYWORD_PRINT, KEYWORD_NOP, KEYWORD_COMMENT, NAME,
+                    KEYWORD_IF, KEYWORD_WHILE, KEYWORD_UNTIL, KEYWORD_DO -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean startsTerm(TokenType type) {
+        return switch (type) {
+            case NAME, NUMBER, KEYWORD_MOD, KEYWORD_ADD, KEYWORD_SUB,
+                    KEYWORD_MUL, KEYWORD_DIV, KEYWORD_NEG -> true;
+            default -> false;
+        };
+    }
 
     //the skeleton task 4
     public Node parseTerm()   { throw todo("TERM"); }
