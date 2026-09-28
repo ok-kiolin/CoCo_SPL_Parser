@@ -1,4 +1,6 @@
-package spl;
+package spl.lexer;
+
+import spl.errors.SyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -38,26 +40,26 @@ public final class Lexer {
     }
 
     private Token classify(String chunk, int line, int col) {
-        TokenType kw = Keywords.TABLE.get(chunk);
+        TokenType kw = Keywords.RESERVED.get(chunk);
         if (kw != null) return new Token(kw, chunk, line, col);
         if (chunk.length() == 1 && SYMBOLS.indexOf(chunk.charAt(0)) >= 0)
             return new Token(symbol(chunk.charAt(0)), chunk, line, col);
-        if (NUM.matcher(chunk).matches())    return new Token(TokenType.NUM, chunk, line, col);
+        if (NUM.matcher(chunk).matches())    return new Token(TokenType.NUMBER, chunk, line, col);
         if (NAME.matcher(chunk).matches())   return new Token(TokenType.NAME, chunk, line, col);
         if (STRING.matcher(chunk).matches()) return new Token(TokenType.STRING, chunk, line, col);
-        throw new SyntaxException(line, col, "unrecognised token '" + chunk + "'",
+        throw new SyntaxException("Unrecognised token '" + chunk + "'.", line, col,
             hintFor(chunk));
     }
 
     private TokenType symbol(char c) {
         switch (c) {
-            case ':': return TokenType.COLON;
-            case ';': return TokenType.SEMICOLON;
-            case '(': return TokenType.LPAREN;
-            case ')': return TokenType.RPAREN;
-            case '{': return TokenType.LBRACE;
-            case '}': return TokenType.RBRACE;
-            case '=': return TokenType.EQUALS;
+            case ':': return TokenType.SYMBOL_COLON;
+            case ';': return TokenType.SYMBOL_SEMICOLON;
+            case '(': return TokenType.SYMBOL_LPAREN;
+            case ')': return TokenType.SYMBOL_RPAREN;
+            case '{': return TokenType.SYMBOL_LBRACE;
+            case '}': return TokenType.SYMBOL_RBRACE;
+            case '=': return TokenType.SYMBOL_ASSIGN;
             default:  throw new IllegalStateException();
         }
     }
