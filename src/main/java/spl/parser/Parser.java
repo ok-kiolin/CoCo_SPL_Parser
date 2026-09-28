@@ -10,7 +10,6 @@ public final class Parser {
     private final TokenCursor cursor;
 
 
-    //Hints with their errors
     private static final String HINT_END =
         "The main algorithm is finished here but more input follows. Check for a missing ';' " + "after the previous instruction, an extra '}', or a 'return' outside a function.";
     private static final String HINT_FIRST_COLON =
@@ -116,7 +115,6 @@ public final class Parser {
         return node;
     }
 
-    // Task 3: statements. Nullable ALGO and INPUT still produce empty inner nodes.
     public Node parseAlgo() {
         Node node = Node.inner("ALGO");
         if (startsInstruction(cursor.peek().type())) {
@@ -183,7 +181,6 @@ public final class Parser {
         return node;
     }
 
-    // Task 4 reuses this method when TERM begins with NAME followed by '('.
     public Node parseCall() {
         Node node = Node.inner("CALL");
         node.add(leafFor(cursor.expect(TokenType.NAME)));
@@ -220,7 +217,6 @@ public final class Parser {
         };
     }
 
-    //the skeleton task 4
     public Node parseTerm()   { throw todo("TERM"); }
     public Node parseBranch() { throw todo("BRANCH"); }
     public Node parseBool()   { throw todo("BOOL"); }
