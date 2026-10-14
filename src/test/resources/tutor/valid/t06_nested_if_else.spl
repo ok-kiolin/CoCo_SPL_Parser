@@ -1,0 +1,12 @@
+#x :
+:
+#x = 7 ;
+if larger ( #x 5 ) then {
+  if eq ( #x 7 ) then {
+    print "seven" ;
+  } else {
+    nop ;
+  } ;
+} else {
+  print "small" ;
+} ;

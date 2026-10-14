@@ -1,0 +1,6 @@
+: :
+if eq ( 1 1 ) then { } else { } ;
+while eq ( 1 2 ) do { } ;
+do { } until eq ( 1 1 ) ;
+until eq ( 1 1 ) do { } ;
+do { } while eq ( 1 2 ) ;

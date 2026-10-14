@@ -1,0 +1,7 @@
+#r :
+num #square ( #n ) { : : return ( mul ( #n #n ) ) }
+num #inc ( #n ) { : : return ( add ( #n 1 ) ) }
+:
+#r = #square ( #inc ( 3 ) ) ;
+#r = add ( #square ( 2 ) #inc ( #r ) ) ;
+print ( #square ( #r ) ) ;

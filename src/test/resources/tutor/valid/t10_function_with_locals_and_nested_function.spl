@@ -1,0 +1,12 @@
+#g :
+num #outer ( #p ) {
+  #t #u :
+  num #inner ( #q ) { #w : : #w = mul ( #q 2 ) ; return ( #w ) }
+  :
+  #t = #inner ( #p ) ;
+  #u = add ( #t 1 ) ;
+  return ( #u )
+}
+:
+#g = #outer ( 5 ) ;
+print ( #g ) ;

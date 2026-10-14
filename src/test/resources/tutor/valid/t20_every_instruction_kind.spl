@@ -1,0 +1,11 @@
+#x :
+void #p ( ) { : : return }
+:
+print "s" ;
+print ( 1 ) ;
+nop ;
+comment "c" ;
+#x = 1 ;
+if eq ( #x 1 ) then { nop ; } else { nop ; } ;
+while eq ( 1 2 ) do { nop ; } ;
+#p ( ) ;

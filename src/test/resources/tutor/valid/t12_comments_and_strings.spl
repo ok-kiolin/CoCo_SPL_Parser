@@ -1,0 +1,9 @@
+#x :
+:
+comment "start" ;
+print "a,b.c:d-e?f!" ;
+print "" ;
+print "123" ;
+comment "version-2.1:final!" ;
+#x = 1 ;
+comment "end." ;

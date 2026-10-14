@@ -1,0 +1,12 @@
+#a #b #c #r :
+:
+#a = 10 ;
+#b = -3 ;
+#c = 0.25 ;
+#r = add ( #a #b ) ;
+#r = sub ( #r 1 ) ;
+#r = mul ( #r #c ) ;
+#r = div ( #r 2 ) ;
+#r = mod ( #a 3 ) ;
+#r = neg ( #r ) ;
+print ( #r ) ;
