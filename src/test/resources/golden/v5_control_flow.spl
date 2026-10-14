@@ -1,0 +1,5 @@
+#i : :
+#i = 0 ;
+if lesser ( #i 10 ) then { print "small" ; } else { nop ; } ;
+while lesser ( #i 10 ) do { #i = add ( #i 1 ) ; } ;
+do { #i = sub ( #i 1 ) ; } until eq ( #i 0 ) ;
