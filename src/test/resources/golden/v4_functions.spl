@@ -1,0 +1,7 @@
+#result : 
+void #greet ( ) { : : print "hello" ; return } 
+num #square ( #n ) { : : return ( mul ( #n #n ) ) } 
+:
+#greet ( ) ;
+#result = #square ( 4 ) ;
+print ( #result ) ;

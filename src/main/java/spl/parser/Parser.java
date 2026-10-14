@@ -9,7 +9,7 @@ import spl.tree.Node;
 public final class Parser {
     private final TokenCursor cursor;
 
-
+    //Hints with their errors
     private static final String HINT_END =
         "The main algorithm is finished here but more input follows. Check for a missing ';' " + "after the previous instruction, an extra '}', or a 'return' outside a function.";
     private static final String HINT_FIRST_COLON =
@@ -48,8 +48,28 @@ public final class Parser {
     public Node parseSplProg(){
         Node root = Node.root("SPL_PROG");
         root.add(parseP());
-        cursor.expect(TokenType.EOF, HINT_END);
+        expectEndOfProgram();
         return root;
+    }
+
+    /**
+     * After the main algorithm only the end of the file may follow. If something else is there,
+     * say specifically why it cannot be there instead of just "expected end of file".
+     */
+    private void expectEndOfProgram() {
+        Token t = cursor.peek();
+        if (t.type() == TokenType.EOF) return;
+        String problem = switch (t.type()) {
+            case KEYWORD_RETURN -> "'return' is only allowed at the end of a function body.";
+            case KEYWORD_VOID, KEYWORD_NUM ->
+                "Functions must be declared between the first and the second ':', not in the algorithm.";
+            case SYMBOL_RBRACE -> "This '}' has no matching '{'.";
+            case SYMBOL_SEMICOLON -> "Unexpected ';' - there is no instruction before it (is there a doubled ';'?).";
+            case SYMBOL_COLON -> "Unexpected ':' - a program has exactly two ':' (variables : functions : algorithm).";
+            default -> "'" + t.lexeme() + "' cannot start an instruction. Instructions start with print, nop, "
+                    + "comment, a name, if, while, until or do.";
+        };
+        throw new SyntaxException("Unexpected '" + t.lexeme() + "'. " + problem, t.line(), t.column(), HINT_END);
     }
 
     public Node parseP() {
@@ -59,9 +79,7 @@ public final class Parser {
         p.add(parseFDecl());
         p.add(leafFor(cursor.expect(TokenType.SYMBOL_COLON, HINT_SECOND_COLON)));
         p.add(parseAlgo());
-
         return p;
-
     }
 
     public Node parseVDecl() {
@@ -70,7 +88,6 @@ public final class Parser {
             node.add(leafFor(cursor.expect(TokenType.NAME)));
             node.add(parseVDecl());
         }
-
         return node;
     }
 
@@ -81,10 +98,8 @@ public final class Parser {
             node.add(parseFType());
             node.add(parseFDecl());
         }
-
         return node;
     }
-
 
     public Node parseFType() {
         Node node = Node.inner("F_TYPE");
@@ -115,8 +130,10 @@ public final class Parser {
         return node;
     }
 
+    //the skeleton. task 3
     public Node parseAlgo() {
         Node node = Node.inner("ALGO");
+        TokenType t = cursor.peek().type();
         if (startsInstruction(cursor.peek().type())) {
             node.add(parseInstr());
             node.add(leafFor(cursor.expect(TokenType.SYMBOL_SEMICOLON,
@@ -217,17 +234,164 @@ public final class Parser {
         };
     }
 
-    public Node parseTerm()   { throw todo("TERM"); }
-    public Node parseBranch() { throw todo("BRANCH"); }
-    public Node parseBool()   { throw todo("BOOL"); }
-    public Node parseLoop()   { throw todo("LOOP"); }
-    public Node parseCond()   { throw todo("COND"); }
+    //the skeleton task 4
+    // ---------------------------------------------------------------------
+    // TASK 4: TERM, BOOL, BRANCH, LOOP, COND  (spec rules: TERM x9, BOOL x6,
+    // BRANCH x1, LOOP x2, COND x2). Each method builds its node while parsing.
+    // The two-token lookahead for TERM -> CALL vs TERM -> USER-DEFINED-NAME is
+    // cursor.peek(2): a name followed by '(' is always a call, because '(' is
+    // not in FOLLOW(TERM).
+    // ---------------------------------------------------------------------
+    private static final String HINT_TERM =
+        "A term is a name (#x), a number (3, -2, 0.5), a call (#f ( ... )), "
+        + "add/sub/mul/div/mod ( TERM TERM ) or neg ( TERM ).";
+    private static final String HINT_BOOL =
+        "A condition is not ( BOOL ), and ( BOOL BOOL ), or ( BOOL BOOL ), "
+        + "or eq/larger/lesser ( TERM TERM ).";
+    private static final String HINT_BRANCH =
+        "A branch has the shape: if BOOL then { ... } else { ... } - the else part is required "
+        + "(it may be empty: else { } ).";
+    private static final String HINT_LOOP_DO =
+        "A loop is either: while/until BOOL do { ... }  or  do { ... } while/until BOOL";
+    private static final String HINT_COND =
+        "After 'do { ... }' write the loop condition: while BOOL or until BOOL.";
+
+    public Node parseTerm() {
+        Node node = Node.inner("TERM");
+        Token t = cursor.peek();
+        switch (t.type()) {
+            case NAME -> {
+                if (cursor.peek(2).type() == TokenType.SYMBOL_LPAREN) {
+                    node.add(parseCall());                                   // TERM -> CALL
+                } else {
+                    node.add(leafFor(cursor.expect(TokenType.NAME)));        // TERM -> USER-DEFINED-NAME
+                }
+            }
+            case NUMBER -> node.add(leafFor(cursor.expect(TokenType.NUMBER)));  // TERM -> NUM
+            case KEYWORD_MOD, KEYWORD_ADD, KEYWORD_SUB, KEYWORD_MUL, KEYWORD_DIV -> {
+                String op = t.lexeme();                                      // TERM -> op ( TERM TERM )
+                node.add(leafFor(cursor.expect(t.type())));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN,
+                        "Write the operands in brackets: " + op + " ( TERM TERM )")));
+                node.add(parseTerm());
+                node.add(parseTerm());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                        "'" + op + "' takes exactly two terms followed by ')', e.g. " + op + " ( 4 2 )")));
+            }
+            case KEYWORD_NEG -> {                                            // TERM -> neg ( TERM )
+                node.add(leafFor(cursor.expect(TokenType.KEYWORD_NEG)));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN,
+                        "Write the operand in brackets: neg ( TERM )")));
+                node.add(parseTerm());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                        "'neg' takes exactly one term followed by ')', e.g. neg ( 5 )")));
+            }
+            default -> throw new SyntaxException("Expected a term, found " + describeFound(t) + ".",
+                    t.line(), t.column(), HINT_TERM);
+        }
+        return node;
+    }
+
+    public Node parseBool() {
+        Node node = Node.inner("BOOL");
+        Token t = cursor.peek();
+        switch (t.type()) {
+            case KEYWORD_NOT -> {                                            // BOOL -> not ( BOOL )
+                node.add(leafFor(cursor.expect(TokenType.KEYWORD_NOT)));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN,
+                        "Write the condition in brackets: not ( BOOL )")));
+                node.add(parseBool());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                        "'not' takes exactly one condition followed by ')'.")));
+            }
+            case KEYWORD_AND, KEYWORD_OR -> {                                // BOOL -> and/or ( BOOL BOOL )
+                String op = t.lexeme();
+                node.add(leafFor(cursor.expect(t.type())));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN,
+                        "Write the conditions in brackets: " + op + " ( BOOL BOOL )")));
+                node.add(parseBool());
+                node.add(parseBool());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                        "'" + op + "' takes exactly two conditions followed by ')'.")));
+            }
+            case KEYWORD_EQ, KEYWORD_LARGER, KEYWORD_LESSER -> {             // BOOL -> cmp ( TERM TERM )
+                String op = t.lexeme();
+                node.add(leafFor(cursor.expect(t.type())));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LPAREN,
+                        "Write the operands in brackets: " + op + " ( TERM TERM )")));
+                node.add(parseTerm());
+                node.add(parseTerm());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RPAREN,
+                        "'" + op + "' compares exactly two terms followed by ')', e.g. " + op + " ( #x 0 )")));
+            }
+            default -> throw new SyntaxException("Expected a condition, found " + describeFound(t) + ".",
+                    t.line(), t.column(), HINT_BOOL);
+        }
+        return node;
+    }
+
+    public Node parseBranch() {                                              // BRANCH -> if BOOL then { ALGO } else { ALGO }
+        Node node = Node.inner("BRANCH");
+        node.add(leafFor(cursor.expect(TokenType.KEYWORD_IF, HINT_BRANCH)));
+        node.add(parseBool());
+        node.add(leafFor(cursor.expect(TokenType.KEYWORD_THEN, HINT_BRANCH)));
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_LBRACE, HINT_BRANCH)));
+        node.add(parseAlgo());
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_RBRACE,
+                "Close the 'then' block with '}'. Also check that every instruction inside ends with ';'.")));
+        node.add(leafFor(cursor.expect(TokenType.KEYWORD_ELSE, HINT_BRANCH)));
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_LBRACE, HINT_BRANCH)));
+        node.add(parseAlgo());
+        node.add(leafFor(cursor.expect(TokenType.SYMBOL_RBRACE,
+                "Close the 'else' block with '}'. Also check that every instruction inside ends with ';'.")));
+        return node;
+    }
+
+    public Node parseLoop() {
+        Node node = Node.inner("LOOP");
+        Token t = cursor.peek();
+        switch (t.type()) {
+            case KEYWORD_WHILE, KEYWORD_UNTIL -> {                           // LOOP -> COND BOOL do { ALGO }
+                node.add(parseCond());
+                node.add(parseBool());
+                node.add(leafFor(cursor.expect(TokenType.KEYWORD_DO, HINT_LOOP_DO)));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LBRACE, HINT_LOOP_DO)));
+                node.add(parseAlgo());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RBRACE,
+                        "Close the loop body with '}'. Also check that every instruction inside ends with ';'.")));
+            }
+            case KEYWORD_DO -> {                                             // LOOP -> do { ALGO } COND BOOL
+                node.add(leafFor(cursor.expect(TokenType.KEYWORD_DO)));
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_LBRACE, HINT_LOOP_DO)));
+                node.add(parseAlgo());
+                node.add(leafFor(cursor.expect(TokenType.SYMBOL_RBRACE,
+                        "Close the loop body with '}'. Also check that every instruction inside ends with ';'.")));
+                node.add(parseCond());
+                node.add(parseBool());
+            }
+            default -> throw new SyntaxException("Expected a loop, found " + describeFound(t) + ".",
+                    t.line(), t.column(), HINT_LOOP_DO);
+        }
+        return node;
+    }
+
+    public Node parseCond() {                                                // COND -> while | until
+        Node node = Node.inner("COND");
+        Token t = cursor.peek();
+        switch (t.type()) {
+            case KEYWORD_WHILE -> node.add(leafFor(cursor.expect(TokenType.KEYWORD_WHILE)));
+            case KEYWORD_UNTIL -> node.add(leafFor(cursor.expect(TokenType.KEYWORD_UNTIL)));
+            default -> throw new SyntaxException("Expected 'while' or 'until', found " + describeFound(t) + ".",
+                    t.line(), t.column(), HINT_COND);
+        }
+        return node;
+    }
+
+    private static String describeFound(Token t) {
+        return t.type() == TokenType.EOF ? "end of file" : "'" + t.lexeme() + "'";
+    }
 
     private static Node leafFor(Token t) {
         return Node.leaf(t.lexeme(), t.line(), t.column());
-    }
-
-    private static UnsupportedOperationException todo(String rule) {
-        return new UnsupportedOperationException(rule + " not implemented yet");
     }
 }
