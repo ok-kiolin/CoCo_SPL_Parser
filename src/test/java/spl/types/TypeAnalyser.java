@@ -15,14 +15,12 @@ class TypeAnalyserTest {
         return new Parser(new Lexer().tokenize(src)).parse();
     }
 
-    /** Full pipeline: Task 1 symbol table, then type analysis. */
     private static TypeResult analyse(String src) {
         Node tree = parse(src);
         SymbolTable table = SymbolTable.analyze(tree);
         return new TypeAnalyser(new SymbolTableLookup(table)).analyse(tree);
     }
 
-    /** Skips Task 1's scope checks, so the analyser's own defences can be tested. */
     private static TypeResult analyseWithoutScopeChecks(String src) {
         Node tree = parse(src);
         return new TypeAnalyser(new FlatSymbols(tree)).analyse(tree);
