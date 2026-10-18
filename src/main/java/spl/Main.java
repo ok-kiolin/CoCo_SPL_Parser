@@ -8,12 +8,17 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Arrays;
 
+import spl.analysis.SemanticException;
+import spl.codegen.CodeGenerationException;
+import spl.codegen.CodeGenerator;
 import spl.errors.SyntaxException;
 import spl.lexer.Lexer;
 import spl.lexer.Token;
 import spl.parser.Parser;
 import spl.tree.Node;
+import spl.types.TypeException;
 import spl.xml.XMLWriter;
 
 public final class Main {
@@ -21,6 +26,7 @@ public final class Main {
     static final String OUTPUT_NAME = "tree.xml";
 
     public static final int OK = 0, SYNTAX_ERROR = 1, INPUT_ERROR = 2, INTERNAL_ERROR = 3;
+    public static final int SEMANTIC_ERROR = 4, GENERATION_ERROR = 5;
 
     private Main() {}
 
@@ -42,6 +48,9 @@ public final class Main {
     }
 
     public static int run(String[] args, PrintStream out, PrintStream err) {
+        // Keep P1's default behaviour while Task 3 is being completed.
+        boolean compile = args.length > 0 && "--compile".equals(args[0]);
+        if (compile) args = Arrays.copyOfRange(args, 1, args.length);
         String inputArg = null, outputArg = null;
         if (args.length == 1) {
             inputArg = args[0];
@@ -62,11 +71,12 @@ public final class Main {
             }
         }
 
-        Path input, output;
+        Path input, output, target;
         try {
             input = resolveInput(inputArg);
             output = (outputArg != null ? Path.of(outputArg) : input.resolveSibling(OUTPUT_NAME))
                     .toAbsolutePath().normalize();
+            target = input.resolveSibling("target.cpp");
         } catch (InvalidPathException e) {
             err.println("Not a valid file path: " + e.getInput());
             err.println("Give the path of ONE SPL file, in quotes if it contains spaces, e.g.:");
@@ -78,8 +88,13 @@ public final class Main {
             err.println("The output file cannot be the input file itself: " + input);
             return INPUT_ERROR;
         }
+        if (compile && (target.equals(input) || target.equals(output))) {
+            err.println("The target.cpp output must differ from both input and XML output.");
+            return INPUT_ERROR;
+        }
 
         try {
+            if (compile) Files.deleteIfExists(target);
             Files.deleteIfExists(output);
         } catch (IOException e) {
             err.println("Cannot replace the existing output file " + output + ": " + e.getMessage());
@@ -106,25 +121,46 @@ public final class Main {
             List<Token> tokens = new Lexer().tokenize(source);
             Node tree = new Parser(tokens).parse();
             XMLWriter.write(tree, output);
+            if (compile) {
+                String generated = new CodeGenerator().compile(tree);
+                Files.writeString(target, generated, StandardCharsets.UTF_8);
+                out.println("Compilation PASSED: " + input);
+                out.println("Target source written to: " + target);
+            }
             out.println("Syntax check PASSED: " + input);
             out.println("Syntax tree (" + countNodes(tree) + " nodes) written to: " + output);
             return OK;
         } catch (SyntaxException e) {
+            if (compile) deleteQuietly(target);
             deleteQuietly(output);
             err.println("Syntax check FAILED: " + input);
             err.println(e.getMessage());
             err.println("No tree.xml was written.");
             return SYNTAX_ERROR;
+        } catch (SemanticException | TypeException e) {
+            deleteQuietly(target);
+            err.println("Semantic check FAILED: " + input);
+            err.println(e.getMessage());
+            err.println("No target.cpp was written. The syntax tree remains available.");
+            return SEMANTIC_ERROR;
+        } catch (CodeGenerationException e) {
+            deleteQuietly(target);
+            err.println("Code generation FAILED: " + input);
+            err.println(e.getMessage());
+            return GENERATION_ERROR;
         } catch (IOException e) {
+            if (compile) deleteQuietly(target);
             deleteQuietly(output);
             err.println("Could not write " + output + ": " + e.getMessage());
             return INPUT_ERROR;
         } catch (StackOverflowError e) {
+            if (compile) deleteQuietly(target);
             deleteQuietly(output);
             err.println("The program in " + input + " is nested too deeply or is too long to process.");
             err.println("No tree.xml was written.");
             return INTERNAL_ERROR;
         } catch (RuntimeException e) {
+            if (compile) deleteQuietly(target);
             deleteQuietly(output);
             err.println("Internal error while processing " + input + ": " + e);
             return INTERNAL_ERROR;
