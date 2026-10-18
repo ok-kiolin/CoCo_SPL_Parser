@@ -8,7 +8,7 @@ public final class TypeResult {
     private final NumericMode mode;
 
     TypeResult(Map<Integer, Type> types, NumericMode mode) {
-        this.types = types;
+        this.types = Map.copyOf(types);
         this.mode = mode;
     }
 

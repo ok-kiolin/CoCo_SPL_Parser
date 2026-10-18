@@ -215,6 +215,13 @@ public final class TypeAnalyser {
             throw new TypeException("'" + nameLeaf.contents + "' is a variable, not a function, so it cannot be called.", nameLeaf);
         }
 
+        int expected = listLength(decl.parent.children.get(3));
+        int actual = listLength(input);
+        if (actual != expected) {
+            throw new TypeException("Function '" + nameLeaf.contents + "' expects " + expected
+                    + " argument(s), but received " + actual + ".", nameLeaf);
+        }
+
 
         Type calleeType = types.get(decl.id);
 
@@ -240,6 +247,14 @@ public final class TypeAnalyser {
 
 
         return Type.OK;
+    }
+
+    private static int listLength(Node list) {
+        int count = 0;
+        for (Node current = list; !current.children.isEmpty(); current = current.children.get(1)) {
+            count++;
+        }
+        return count;
     }
  
     private Type checkAssign(Node n) {
