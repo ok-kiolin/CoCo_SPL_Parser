@@ -1,7 +1,11 @@
 package spl.codegen;
 
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import spl.lexer.Lexer;
@@ -14,7 +18,29 @@ class AlgorithmGeneratorTest {
     @TempDir Path directory;
 
     private static String generate(String source) {
-        return new CodeGenerator().compile(new Parser(new Lexer().tokenize(source)).parse());
+        String generated = new CodeGenerator().compile(new Parser(new Lexer().tokenize(source)).parse());
+        assertJumpsWellFormed(generated);
+        return generated;
+    }
+
+    static void assertJumpsWellFormed(String generated) {
+        String exe = generated.substring(generated.indexOf("#include <iostream>")).replaceAll("(?s)/\\*.*?\\*/", "").replaceAll("//[^\\n]*", "");
+        Set<String> defined = new HashSet<>();
+
+        Matcher d = Pattern.compile("(?m)^\\s*(\\w+)\\s*:\\s*;").matcher(exe);
+
+
+        while (d.find()) assertTrue(defined.add(d.group(1)), "duplicate label " + d.group(1));
+
+        Set<String> used = new HashSet<>();
+
+        Matcher g = Pattern.compile("\\bgoto\\s+(\\w+)\\s*;").matcher(exe);
+
+        while (g.find()) {
+            used.add(g.group(1));
+            assertTrue(defined.contains(g.group(1)), "goto to missing label " + g.group(1));
+        }
+        assertTrue(used.containsAll(defined), "defined but never jumped to: " + defined.stream().filter(l -> !used.contains(l)).toList());
     }
 
     private String execute(String source) throws Exception {
@@ -94,6 +120,19 @@ class AlgorithmGeneratorTest {
                 + "do { #j = 0 ; do { #sum = add ( #sum 1 ) ; #j = add ( #j 1 ) ; } until eq ( #j 2 ) ; "
                 + "#i = add ( #i 1 ) ; } while lesser ( #i 3 ) ; return ( #sum ) } "
                 + ": print ( #f ( ) ) ; print \":\" ; print ( #f ( ) ) ;"));
+    }
+
+    @Test void shortCircuitSkipsPrintingSideEffectsForProvenConditions() throws Exception {
+        assertEquals("abzzc", execute(": num #t ( ) { : : print \"z\" ; return ( 1 ) } : "
+            + "if or ( eq ( 1 1 ) eq ( #t ( ) 1 ) ) then { print \"a\" ; } else { print \"x\" ; } ; "
+            + "if and ( eq ( 1 0 ) eq ( #t ( ) 1 ) ) then { print \"x\" ; } else { print \"b\" ; } ; "
+            + "if or ( eq ( #t ( ) 0 ) eq ( #t ( ) 1 ) ) then { print \"c\" ; } else { print \"x\" ; } ;"));
+    }
+
+    @Test void callsNestedInArithmeticInsideAPostTestLoopCondition() throws Exception {
+
+        assertEquals("4", execute("#n : num #inc ( ) { : : #n = add ( #n 1 ) ; return ( #n ) } "
+        + ": #n = 0 ; do { nop ; } until larger ( add ( #inc ( ) mul ( #inc ( ) 2 ) ) 10 ) ; print ( #n ) ;"));
     }
 
     private record Condition(String source, boolean value) { }
