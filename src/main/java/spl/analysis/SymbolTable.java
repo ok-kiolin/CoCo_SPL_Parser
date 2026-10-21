@@ -93,7 +93,10 @@ public final class SymbolTable
             this.parent = parent;
             this.ownerFunction = ownerFunction;
             this.programNode = programNode;
-            if (parent != null) parent.children.add(this);
+            if (parent != null) 
+            {
+                parent.children.add(this);
+            }
         }
 
         public int getId() { return id; }
@@ -113,7 +116,10 @@ public final class SymbolTable
             for (Scope s = this; s != null; s = s.parent) 
                 {
                 Symbol symbol = s.variablesByName.get(name);
-                if (symbol != null) return symbol;
+                if (symbol != null)
+                { 
+                    return symbol;
+                }
             }
             return null;
         }
@@ -194,7 +200,7 @@ public final class SymbolTable
             Node nameNode = functionNode.children.get(1);
             String name = nameNode.contents;
             if (scope.functionsByName.containsKey(name)) 
-                {
+            {
                 throw error("Duplicate function declaration '" + name + "' in the same P scope.", nameNode);
             }
             FunctionKind functionKind = "void".equals(functionNode.children.get(0).contents) ? FunctionKind.PROCEDURE : FunctionKind.NUMERIC_FUNCTION;
@@ -233,7 +239,7 @@ public final class SymbolTable
         String name = nameNode.contents;
         Symbol previous = scope.variablesByName.get(name);
         if (previous != null) 
-            {
+        {
             String what = (parameters || previous.kind == Kind.PARAMETER) ? "parameter/local variable" : "variable";
             throw error("Duplicate " + what + " declaration '" + name  + "'. Parameters and locals in the same function share a scope.", nameNode);
         }
@@ -244,7 +250,7 @@ public final class SymbolTable
         scope.localDeclarations.add(symbol);
         bindings.put(nameNode, symbol);
         if (vDecl.children.size() > 1) 
-            {
+        {
             declareVariables(vDecl.children.get(1), scope, parameters);
         }
     }
@@ -267,7 +273,8 @@ public final class SymbolTable
         for (Symbol function : scope.functions) 
         {
             resolveP(function.body, function.functionScope);
-            if (function.returnTerm != null) {
+            if (function.returnTerm != null) 
+            {
                 resolveNode(function.returnTerm, function.functionScope);
             }
         }
@@ -288,7 +295,7 @@ public final class SymbolTable
                 Node nameNode = node.children.get(0);
                 Symbol function = scope.getFunctionDeclaredHere(nameNode.contents);
                 if (function == null) 
-                    {
+                {
                     throw error("Forbidden function call '" + nameNode.contents + "': calls may use only functions declared in this P node's F_DECL.", nameNode);
                 }
                 bindings.put(nameNode, function);
@@ -297,15 +304,21 @@ public final class SymbolTable
             case "TERM" -> 
             {
                 if (node.children.size() == 1 && node.children.get(0).kind == Node.Kind.LEAF) 
-                    {
+                {
                     Node possibleName = node.children.get(0);
-                    if (possibleName.contents.startsWith("#")) bindVariableUse(possibleName, scope);
+                    if (possibleName.contents.startsWith("#")) 
+                    {
+                        bindVariableUse(possibleName, scope);
+                    }
                 } 
                 else 
                     {
                     for (Node child : node.children) 
                     {
-                        if (child.kind != Node.Kind.LEAF) resolveNode(child, scope);
+                        if (child.kind != Node.Kind.LEAF) 
+                        {
+                            resolveNode(child, scope);
+                        }
                     }
                 }
             }
@@ -323,11 +336,14 @@ public final class SymbolTable
                     if (child.kind != Node.Kind.LEAF) resolveNode(child, scope);
                 }
             }
-            default -> 
+            default ->
             {
                 for (Node child : node.children) 
                 {
-                    if (child.kind != Node.Kind.LEAF) resolveNode(child, scope);
+                    if (child.kind != Node.Kind.LEAF) 
+                    {
+                        resolveNode(child, scope);
+                    }
                 }
             }
         }
@@ -350,6 +366,6 @@ public final class SymbolTable
 
     private static SemanticException error(String message, Node node) 
     {
-        return new SemanticException(message, node.line, node.col);
+        return new SemanticException(message, node);
     }
 }
