@@ -22,7 +22,7 @@ import spl.tree.Node;
 import spl.types.SymbolTableLookup;
 import spl.types.TypeAnalyser;
 import spl.types.TypeException;
-import spl.xml.XMLWriter;
+import spl.types.TypeResult;
 
 public final class Main {
     static final String DEFAULT_INPUT = "SPL.txt";
@@ -37,7 +37,7 @@ public final class Main {
 
     public static void main(String[] args) throws InterruptedException {
         int[] result = {INTERNAL_ERROR};
-        Thread worker = new Thread(null, () -> result[0] = run(args, System.out, System.err), "spl-front-end", STACK_BYTES);
+        Thread worker = new Thread(null, () -> result[0] = run(args, System.out, System.err), "spl-compiler", STACK_BYTES);
         worker.start();
         worker.join();
         int code = result[0];
@@ -50,131 +50,163 @@ public final class Main {
         System.exit(code);
     }
 
-    public static int run(String[] args, PrintStream out, PrintStream err) {
-        // Keep P1's default behaviour while Task 3 is being completed.
-        boolean compile = args.length > 0 && "--compile".equals(args[0]);
-        if (compile) args = Arrays.copyOfRange(args, 1, args.length);
-        String inputArg = null, outputArg = null;
-        if (args.length == 1) {
-            inputArg = args[0];
-        } else if (args.length >= 2) {
-            String joined = String.join(" ", args);
-            if (isExistingFile(joined)) {
-                inputArg = joined;
-            } else if (args.length == 2 && args[1].toLowerCase().endsWith(".xml")) {
-                inputArg = args[0];
-                outputArg = args[1];
-            } else {
-                err.println("Please give ONE SPL file per run, for example:");
-                err.println("  java -jar group-5.jar C:\\tests\\test1.txt");
-                err.println("  group-5.exe C:\\tests\\test1.txt");
-                err.println("Put the path in quotes if it contains spaces: \"C:\\my tests\\test1.txt\"");
-                err.println("No files were changed.");
-                return INPUT_ERROR;
-            }
-        }
+    enum Mode { COMPILE, CHECK, FRONTEND_ONLY }
 
-        Path input, output, target;
+    private record Arguments(Mode mode, String input, String xml, boolean help) { }
+
+    public static int run(String[] args, PrintStream out, PrintStream err) {
+        return run(args, out, err, new CodeGenerator());
+    }
+
+    // Package-private injection boundary for exercising generation failures.
+    static int run(String[] args, PrintStream out, PrintStream err, CodeGenerator generator) {
+        Arguments arguments;
         try {
-            input = resolveInput(inputArg);
-            output = (outputArg != null ? Path.of(outputArg) : input.resolveSibling(OUTPUT_NAME))
-                    .toAbsolutePath().normalize();
-            target = input.resolveSibling("target.cpp");
-        } catch (InvalidPathException e) {
-            err.println("Not a valid file path: " + e.getInput());
-            err.println("Give the path of ONE SPL file, in quotes if it contains spaces, e.g.:");
-            err.println("  java -jar group-5.jar \"C:\\my tests\\test1.txt\"");
+            arguments = arguments(args);
+        } catch (IllegalArgumentException invalidArguments) {
+            err.println(invalidArguments.getMessage());
+            usage(err);
             err.println("No files were changed.");
             return INPUT_ERROR;
         }
-        if (output.equals(input)) {
-            err.println("The output file cannot be the input file itself: " + input);
-            return INPUT_ERROR;
-        }
-        if (compile && (target.equals(input) || target.equals(output))) {
-            err.println("The target.cpp output must differ from both input and XML output.");
-            return INPUT_ERROR;
+        if (arguments.help()) {
+            usage(out);
+            return OK;
         }
 
+        Path input, xml;
         try {
-            if (compile) Files.deleteIfExists(target);
-            Files.deleteIfExists(output);
-        } catch (IOException e) {
-            err.println("Cannot replace the existing output file " + output + ": " + e.getMessage());
+            input = resolveInput(arguments.input());
+            xml = (arguments.xml() == null ? input.resolveSibling(OUTPUT_NAME) : Path.of(arguments.xml()))
+                    .toAbsolutePath().normalize();
+        } catch (InvalidPathException invalidPath) {
+            err.println("Not a valid file path: " + invalidPath.getInput());
+            err.println("No files were changed.");
+            return INPUT_ERROR;
+        }
+        CompilerOutputs outputs = new CompilerOutputs(input, xml);
+        if (Files.exists(input) && !Files.isRegularFile(input)) {
+            err.println("Input is not a regular file: " + input);
+            return INPUT_ERROR;
+        }
+        try {
+            outputs.prepare();
+        } catch (IOException preparation) {
+            err.println("Cannot prepare compiler outputs: " + preparation.getMessage());
             return INPUT_ERROR;
         }
 
         String source;
         try {
             source = readSource(input);
-        } catch (NoSuchFileException e) {
+        } catch (NoSuchFileException missing) {
             err.println("Input file not found: " + input);
             String seen = textFilesIn(input.getParent());
             if (!seen.isEmpty()) err.println("Text files in that folder: " + seen);
-            err.println("Put SPL.txt in the same folder as the program, or give its path, e.g.:");
-            err.println("  group-5.exe C:\\tests\\SPL.txt");
-            err.println("  java -jar group-5.jar C:\\tests\\SPL.txt");
+            err.println("Put SPL.txt beside the program, or give its path in quotes.");
             return INPUT_ERROR;
-        } catch (IOException e) {
-            err.println("Cannot read input file " + input + ": " + e.getMessage());
+        } catch (IOException unreadable) {
+            err.println("Cannot read input file " + input + ": " + unreadable.getMessage());
             return INPUT_ERROR;
         }
 
+        boolean treeWritten = false;
+        Path writing = xml;
         try {
             List<Token> tokens = new Lexer().tokenize(source);
             Node tree = new Parser(tokens).parse();
-            XMLWriter.write(tree, output);
+            outputs.writeTree(tree);
+            treeWritten = true;
 
-            // Every parsed program must pass both semantic phases, even when the
-            // caller only requests frontend validation.  Type analysis consumes
-            // the occurrence-to-declaration bindings produced by scope analysis.
-            SymbolTable symbolTable = SymbolTable.analyze(tree);
-            new TypeAnalyser(new SymbolTableLookup(symbolTable)).analyse(tree);
-
-            if (compile) {
-                String generated = new CodeGenerator().compile(tree);
-                Files.writeString(target, generated, StandardCharsets.UTF_8);
-                out.println("Compilation PASSED: " + input);
-                out.println("Target source written to: " + target);
+            if (arguments.mode() != Mode.FRONTEND_ONLY) {
+                SymbolTable symbols = SymbolTable.analyze(tree);
+                TypeResult types = new TypeAnalyser(new SymbolTableLookup(symbols)).analyse(tree);
+                if (arguments.mode() == Mode.COMPILE) {
+                    // Consume the exact semantic results above: do not analyse twice.
+                    String generated = generator.generate(tree, symbols, types);
+                    writing = outputs.target;
+                    outputs.writeTarget(generated);
+                    out.println("Compilation PASSED: " + input);
+                    out.println("Target source written to: " + outputs.target);
+                } else {
+                    out.println("Semantic check PASSED: " + input);
+                }
+                out.println("Numeric mode: " + types.mode().cType);
+            } else {
+                out.println("Syntax check PASSED: " + input);
             }
-            out.println("Syntax check PASSED: " + input);
-            out.println("Syntax tree (" + countNodes(tree) + " nodes) written to: " + output);
+            out.println("Syntax tree (" + countNodes(tree) + " nodes) written to: " + xml);
             return OK;
-        } catch (SyntaxException e) {
-            if (compile) deleteQuietly(target);
-            deleteQuietly(output);
+        } catch (SyntaxException syntax) {
+            outputs.removeTarget(err);
+            outputs.removeTree(err);
             err.println("Syntax check FAILED: " + input);
-            err.println(e.getMessage());
-            err.println("No tree.xml was written.");
+            err.println(syntax.getMessage());
             return SYNTAX_ERROR;
-        } catch (SemanticException | TypeException e) {
-            deleteQuietly(target);
+        } catch (SemanticException | TypeException semantic) {
+            outputs.removeTarget(err);
             err.println("Semantic check FAILED: " + input);
-            err.println(e.getMessage());
-            err.println("No target.cpp was written. The syntax tree remains available.");
+            err.println(semantic.getMessage());
+            if (treeWritten) err.println("Syntax tree available at: " + xml);
             return SEMANTIC_ERROR;
-        } catch (CodeGenerationException e) {
-            deleteQuietly(target);
+        } catch (CodeGenerationException generation) {
+            outputs.removeTarget(err);
             err.println("Code generation FAILED: " + input);
-            err.println(e.getMessage());
+            err.println(generation.getMessage());
             return GENERATION_ERROR;
-        } catch (IOException e) {
-            if (compile) deleteQuietly(target);
-            deleteQuietly(output);
-            err.println("Could not write " + output + ": " + e.getMessage());
+        } catch (IOException outputFailure) {
+            outputs.removeTarget(err);
+            if (!treeWritten) outputs.removeTree(err);
+            err.println("Could not write " + writing + ": " + outputFailure.getMessage());
             return INPUT_ERROR;
-        } catch (StackOverflowError e) {
-            if (compile) deleteQuietly(target);
-            deleteQuietly(output);
+        } catch (StackOverflowError tooDeep) {
+            outputs.removeTarget(err);
+            if (!treeWritten) outputs.removeTree(err);
             err.println("The program in " + input + " is nested too deeply or is too long to process.");
-            err.println("No tree.xml was written.");
             return INTERNAL_ERROR;
-        } catch (RuntimeException e) {
-            if (compile) deleteQuietly(target);
-            deleteQuietly(output);
-            err.println("Internal error while processing " + input + ": " + e);
+        } catch (RuntimeException internal) {
+            outputs.removeTarget(err);
+            if (!treeWritten) outputs.removeTree(err);
+            err.println("Internal error while processing " + input + ": " + internal);
             return INTERNAL_ERROR;
         }
+    }
+
+    private static Arguments arguments(String[] args) {
+        Mode mode = Mode.COMPILE;
+        int offset = 0;
+        if (args.length > 0 && args[0].startsWith("--")) {
+            switch (args[0]) {
+                case "--compile" -> mode = Mode.COMPILE;
+                case "--check" -> mode = Mode.CHECK;
+                case "--frontend-only" -> mode = Mode.FRONTEND_ONLY;
+                case "--help" -> {
+                    if (args.length != 1) throw new IllegalArgumentException("--help takes no file arguments.");
+                    return new Arguments(mode, null, null, true);
+                }
+                default -> throw new IllegalArgumentException("Unknown option: " + args[0]);
+            }
+            offset = 1;
+        }
+        String[] files = Arrays.copyOfRange(args, offset, args.length);
+        for (String file : files) {
+            if (file.startsWith("--")) throw new IllegalArgumentException("Specify only one leading mode option.");
+        }
+        if (files.length == 0) return new Arguments(mode, null, null, false);
+        if (files.length == 1) return new Arguments(mode, files[0], null, false);
+        String joined = String.join(" ", files);
+        if (isExistingFile(joined)) return new Arguments(mode, joined, null, false);
+        if (files.length == 2 && files[1].toLowerCase(java.util.Locale.ROOT).endsWith(".xml")) {
+            return new Arguments(mode, files[0], files[1], false);
+        }
+        throw new IllegalArgumentException("Please give ONE SPL file per run and optionally an XML output path.");
+    }
+
+    private static void usage(PrintStream stream) {
+        stream.println("Usage: java -jar group-5.jar [--compile|--check|--frontend-only] [SPL.txt [tree.xml]]");
+        stream.println("Default: full compilation to tree.xml and target.cpp beside the input.");
+        stream.println("--check: names and types only. --frontend-only: syntax and XML only.");
+        stream.println("No input argument: look for SPL.txt. Put paths containing spaces in quotes.");
     }
 
     static boolean isExistingFile(String candidate) {
@@ -245,13 +277,15 @@ public final class Main {
         return new String(b, StandardCharsets.ISO_8859_1);
     }
 
-    private static int countNodes(Node n) {
-        int c = 1;
-        for (Node child : n.children) c += countNodes(child);
-        return c;
-    }
-
-    private static void deleteQuietly(Path p) {
-        try { Files.deleteIfExists(p); } catch (IOException ignored) { }
+    private static int countNodes(Node root) {
+        java.util.ArrayDeque<Node> pending = new java.util.ArrayDeque<>();
+        pending.push(root);
+        int count = 0;
+        while (!pending.isEmpty()) {
+            Node node = pending.pop();
+            count++;
+            for (Node child : node.children) pending.push(child);
+        }
+        return count;
     }
 }
