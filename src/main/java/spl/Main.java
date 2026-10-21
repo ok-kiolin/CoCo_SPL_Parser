@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import spl.analysis.SemanticException;
+import spl.analysis.SymbolTable;
 import spl.codegen.CodeGenerationException;
 import spl.codegen.CodeGenerator;
 import spl.errors.SyntaxException;
@@ -18,6 +19,8 @@ import spl.lexer.Lexer;
 import spl.lexer.Token;
 import spl.parser.Parser;
 import spl.tree.Node;
+import spl.types.SymbolTableLookup;
+import spl.types.TypeAnalyser;
 import spl.types.TypeException;
 import spl.xml.XMLWriter;
 
@@ -121,6 +124,13 @@ public final class Main {
             List<Token> tokens = new Lexer().tokenize(source);
             Node tree = new Parser(tokens).parse();
             XMLWriter.write(tree, output);
+
+            // Every parsed program must pass both semantic phases, even when the
+            // caller only requests frontend validation.  Type analysis consumes
+            // the occurrence-to-declaration bindings produced by scope analysis.
+            SymbolTable symbolTable = SymbolTable.analyze(tree);
+            new TypeAnalyser(new SymbolTableLookup(symbolTable)).analyse(tree);
+
             if (compile) {
                 String generated = new CodeGenerator().compile(tree);
                 Files.writeString(target, generated, StandardCharsets.UTF_8);

@@ -63,11 +63,15 @@ class Task4DriverTest {
         assertTrue(Files.readString(directory.resolve("target.cpp")).contains("goto"));
     }
 
-    @Test void defaultInvocationRemainsFrontendOnly() throws Exception {
+    @Test void defaultInvocationRunsFullSemanticPipeline() throws Exception {
         Path input = directory.resolve("input.spl");
         Files.writeString(input, ": : print ( #undeclared ) ;");
-        assertEquals(Main.OK, Main.run(new String[]{input.toString()}, System.out, System.err));
+        ByteArrayOutputStream errors = new ByteArrayOutputStream();
+        int result = Main.run(new String[]{input.toString()}, new PrintStream(new ByteArrayOutputStream()), new PrintStream(errors));
+        assertEquals(Main.SEMANTIC_ERROR, result);
         assertFalse(Files.exists(directory.resolve("target.cpp")));
+        assertTrue(Files.exists(directory.resolve("tree.xml")));
+        assertTrue(errors.toString().contains("Undeclared variable"));
     }
 
     @Test void cannotOverwriteSourceWithTarget() throws Exception {
