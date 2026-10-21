@@ -20,7 +20,7 @@ class Task6PipelineTest {
         ByteArrayOutputStream err = new ByteArrayOutputStream();
         String[] args = compile
                 ? new String[]{"--compile", input.toString()}
-                : new String[]{input.toString()};
+                : new String[]{"--check", input.toString()};
         int code = Main.run(args, new PrintStream(out), new PrintStream(err));
         return new Result(code, out.toString(), err.toString());
     }

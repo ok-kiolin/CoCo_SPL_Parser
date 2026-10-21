@@ -83,7 +83,11 @@ class IntegrationTest {
 
     private static Result runMain(String... args) {
         ByteArrayOutputStream out = new ByteArrayOutputStream(), err = new ByteArrayOutputStream();
-        int code = Main.run(args, new PrintStream(out, true, StandardCharsets.UTF_8),
+        // These are P1 syntax/XML regressions; their fixtures need not satisfy P2 semantics.
+        String[] frontendArgs = new String[args.length + 1];
+        frontendArgs[0] = "--frontend-only";
+        System.arraycopy(args, 0, frontendArgs, 1, args.length);
+        int code = Main.run(frontendArgs, new PrintStream(out, true, StandardCharsets.UTF_8),
                 new PrintStream(err, true, StandardCharsets.UTF_8));
         return new Result(code, out.toString(StandardCharsets.UTF_8), err.toString(StandardCharsets.UTF_8));
     }
