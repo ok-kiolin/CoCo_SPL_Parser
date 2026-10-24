@@ -1,0 +1,36 @@
+# file	expected	mode	diagnostic substring	rule
+valid/01-empty.spl	ACCEPT	INT		empty declarations and algorithm
+valid/02-integer-variable.spl	ACCEPT	INT		variable declaration, assignment, name and integer terms
+valid/03-decimal.spl	ACCEPT	FLOAT		decimal selects floating-point mode
+valid/04-integer-arithmetic.spl	ACCEPT	INT		add, sub, mul and neg require and produce numbers
+valid/05-div.spl	ACCEPT	FLOAT		div selects floating-point mode
+valid/06-mod.spl	ACCEPT	INT		mod selects integer mode
+valid/07-simple-instructions.spl	ACCEPT	INT		string output, nop and comment are well typed
+valid/08-procedure-zero-arguments.spl	ACCEPT	INT		procedure instruction and empty argument list
+valid/09-procedure-numeric-arguments.spl	ACCEPT	INT		procedure parameters and numeric arguments
+valid/10-numeric-function-term.spl	ACCEPT	INT		numeric function call used as a term
+valid/11-nested-calls.spl	ACCEPT	INT		nested numeric calls in arguments
+valid/12-all-booleans.spl	ACCEPT	INT		eq, larger, lesser, not, and and or
+valid/13-empty-branch-algorithms.spl	ACCEPT	INT		empty then and else algorithms
+valid/14-pre-while.spl	ACCEPT	INT		pre-test while requires a boolean condition
+valid/15-pre-until.spl	ACCEPT	INT		pre-test until requires a boolean condition
+valid/16-post-while.spl	ACCEPT	INT		post-test while requires a boolean condition
+valid/17-post-until.spl	ACCEPT	INT		post-test until requires a boolean condition
+valid/18-div-with-decimal.spl	ACCEPT	FLOAT		div and decimal consistently select float mode
+valid/19-uncalled-valid-function.spl	ACCEPT	INT		uncalled function body and return are checked
+valid/20-nested-function-return.spl	ACCEPT	INT		nested call and ancestor variable in return
+invalid/01-procedure-assignment-value.spl	REJECT	-	void procedure	procedure cannot be an assignment value
+invalid/02-procedure-print-value.spl	REJECT	-	void procedure	procedure cannot be printed as a value
+invalid/03-numeric-call-instruction.spl	REJECT	-	returns a number	numeric function cannot be a standalone instruction
+invalid/04-procedure-return-value.spl	REJECT	-	void procedure	numeric return cannot contain a procedure value
+invalid/05-uncalled-invalid-body.spl	REJECT	-	returns a number	uncalled function bodies are checked
+invalid/06-procedure-as-nested-argument.spl	REJECT	-	void procedure	every call argument must be numeric
+invalid/07-too-few-arguments.spl	REJECT	-	expects 2 argument(s), but received 1	too few arguments report function and counts
+invalid/08-too-many-arguments.spl	REJECT	-	expects 1 argument(s), but received 2	too many arguments report function and counts
+invalid/09-mod-div-across-functions.spl	REJECT	-	float-integer-conflict	mod and div conflict across different functions
+invalid/10-decimal-function-with-top-mod.spl	REJECT	-	Decimal number '1.5'	decimal in a function conflicts with mod elsewhere
+invalid/11-top-decimal-with-function-mod.spl	REJECT	-	Decimal number '1.5'	top-level decimal conflicts with mod in a function
+invalid/12-nested-decimal-with-mod.spl	REJECT	-	Decimal number '1.5'	decimal in nested uncalled function conflicts with mod
+invalid/13-procedure-in-arithmetic-return.spl	REJECT	-	void procedure	nested procedure call cannot occur in numeric return arithmetic
+invalid/14-mod-div-top-and-function.spl	REJECT	-	float-integer-conflict	whole-program mode includes algorithm and function
+invalid/15-zero-argument-arity.spl	REJECT	-	expects 1 argument(s), but received 0	empty argument list still receives arity checking

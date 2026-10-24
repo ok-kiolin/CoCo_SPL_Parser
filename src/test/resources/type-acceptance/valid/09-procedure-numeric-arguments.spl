@@ -1,0 +1,1 @@
+: void #p ( #a #b ) { : : print ( add ( #a #b ) ) ; return } : #p ( 1 2 ) ;

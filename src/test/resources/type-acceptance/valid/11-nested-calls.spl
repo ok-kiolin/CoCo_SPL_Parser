@@ -1,0 +1,1 @@
+: num #addtwo ( #a #b ) { : : return ( add ( #a #b ) ) } num #one ( ) { : : return ( 1 ) } : print ( #addtwo ( #one ( ) #one ( ) ) ) ;

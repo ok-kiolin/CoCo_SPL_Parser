@@ -1,0 +1,1 @@
+#x : : #x = 0 ; do { #x = add ( #x 1 ) ; } until eq ( #x 2 ) ;
