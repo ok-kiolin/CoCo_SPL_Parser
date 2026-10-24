@@ -1,0 +1,7 @@
+: void #outer ( ) {
+: void #f ( ) {
+: : return
+} void #f ( ) {
+: : return
+} : return
+} :

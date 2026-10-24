@@ -1,0 +1,6 @@
+: num #outer ( ) {
+#x : num #inner ( ) {
+: : return ( #x )
+} : #x = 9 ;
+return ( #inner ( ) )
+} : print ( #outer ( ) ) ;

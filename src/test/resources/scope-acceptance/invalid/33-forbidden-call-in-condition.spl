@@ -1,0 +1,8 @@
+: num #f ( ) {
+: : return ( 1 )
+} void #g ( ) {
+: : if eq ( #f ( ) 1 ) then {
+} else {
+} ;
+return
+} :

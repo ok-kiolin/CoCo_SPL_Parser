@@ -1,0 +1,4 @@
+#same : num #same ( ) {
+: : return ( #same )
+} : #same = 4 ;
+print ( #same ( ) ) ;

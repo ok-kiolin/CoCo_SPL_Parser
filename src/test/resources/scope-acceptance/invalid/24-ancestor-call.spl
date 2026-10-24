@@ -1,0 +1,7 @@
+: void #outer ( ) {
+: void #inner ( ) {
+: : #outer ( ) ;
+return
+} : #inner ( ) ;
+return
+} : #outer ( ) ;

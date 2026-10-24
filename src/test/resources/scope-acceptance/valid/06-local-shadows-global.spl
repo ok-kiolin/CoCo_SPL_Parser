@@ -1,0 +1,7 @@
+#x : void #show ( ) {
+#x : : #x = 2 ;
+print ( #x ) ;
+return
+} : #x = 1 ;
+#show ( ) ;
+print ( #x ) ;

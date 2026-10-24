@@ -1,0 +1,10 @@
+: void #outer ( ) {
+: void #middle ( ) {
+: void #inner ( ) {
+: : nop ;
+return
+} : #inner ( ) ;
+return
+} : #middle ( ) ;
+return
+} : #outer ( ) ;

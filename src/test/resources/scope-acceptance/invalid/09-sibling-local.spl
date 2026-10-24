@@ -1,0 +1,7 @@
+: void #f ( ) {
+#x : : #x = 1 ;
+return
+} void #g ( ) {
+: : print ( #x ) ;
+return
+} :

@@ -1,0 +1,59 @@
+# file	outcome	source_name	diagnostic_fragment	rule
+valid/01-empty.spl	ACCEPT	-	-	Empty declarations and algorithm
+valid/02-global-use.spl	ACCEPT	-	-	Global declaration binds reads and writes
+valid/03-distinct-globals.spl	ACCEPT	-	-	Different declarations remain different entities
+valid/04-parameter.spl	ACCEPT	-	-	Parameter declaration binds body uses
+valid/05-parameter-shadows-global.spl	ACCEPT	-	-	A parameter may shadow an ancestor variable
+valid/06-local-shadows-global.spl	ACCEPT	-	-	A local may shadow an ancestor variable
+valid/07-local-shadows-ancestor-parameter.spl	ACCEPT	-	-	Inner locals may shadow outer parameters
+valid/08-nearest-three-level.spl	ACCEPT	-	-	Nearest ancestor declaration wins at depth three
+valid/09-deep-global-capture.spl	ACCEPT	-	-	A global is visible through multiple ancestors
+valid/10-parameter-capture-in-return.spl	ACCEPT	-	-	Return expressions see ancestor parameters
+valid/11-local-capture-in-return.spl	ACCEPT	-	-	Return expressions see ancestor locals
+valid/12-multiple-ancestor-captures.spl	ACCEPT	-	-	A child distinguishes outer parameter/local and own parameter
+valid/13-sibling-local-names.spl	ACCEPT	-	-	Sibling local spellings may be reused
+valid/14-sibling-parameter-names.spl	ACCEPT	-	-	Parameters in different functions are different entities
+valid/15-duplicated-helper-names.spl	ACCEPT	-	-	Separate parents may each declare their own helper
+valid/16-downward-calls.spl	ACCEPT	-	-	Calls follow the declaration hierarchy
+valid/17-declaration-order.spl	ACCEPT	-	-	Main may call any immediately declared function
+valid/18-variable-function-same-name.spl	ACCEPT	-	-	Variable and function namespaces are separate
+valid/19-parameter-child-function-same-name.spl	ACCEPT	-	-	Parameter and child function may share spelling
+valid/20-local-child-function-same-name.spl	ACCEPT	-	-	Local and child function may share spelling
+valid/21-child-function-same-name-as-parent.spl	ACCEPT	-	-	A same-named child call is not recursion
+valid/22-call-in-return-expression.spl	ACCEPT	-	-	Return arithmetic may call immediate children
+valid/23-control-flow-keeps-scope.spl	ACCEPT	-	-	Algorithm blocks do not introduce declaration scopes
+valid/24-nested-arguments.spl	ACCEPT	-	-	Argument expressions resolve calls in caller scope
+valid/25-shortest-legal-name.spl	ACCEPT	-	-	The grammar allows # as a name
+invalid/01-undeclared-read.spl	REJECT	#missing	Undeclared variable	Undeclared global read
+invalid/02-undeclared-assignment.spl	REJECT	#missing	Undeclared variable	Undeclared assignment target
+invalid/03-undeclared-rhs.spl	REJECT	#missing	Undeclared variable	Undeclared arithmetic operand
+invalid/04-undeclared-return.spl	REJECT	#missing	Undeclared variable	Uncalled numeric functions still require valid return bindings
+invalid/05-undeclared-argument.spl	REJECT	#missing	Undeclared variable	Arguments are checked in caller scope
+invalid/06-undeclared-condition.spl	REJECT	#missing	Undeclared variable	Conditions require declared variables
+invalid/07-unreachable-undeclared-use.spl	REJECT	#missing	Undeclared variable	Statically unreachable algorithms are still checked
+invalid/08-main-cannot-see-child-local.spl	REJECT	#x	Undeclared variable	Main cannot look down into function locals
+invalid/09-sibling-local.spl	REJECT	#x	Undeclared variable	Variables cannot be resolved sideways
+invalid/10-cousin-local.spl	REJECT	#x	Undeclared variable	Equal depth does not imply shared ancestry
+invalid/11-sibling-parameter.spl	REJECT	#x	Undeclared variable	A sibling parameter is not an ancestor declaration
+invalid/12-duplicate-global.spl	REJECT	#x	Duplicate variable declaration	No duplicate variables in one scope
+invalid/13-duplicate-local.spl	REJECT	#x	Duplicate variable declaration	No duplicate locals in one function
+invalid/14-duplicate-parameters.spl	REJECT	#x	Duplicate parameter/local variable declaration	No duplicate formal parameters
+invalid/15-parameter-local-collision.spl	REJECT	#x	Duplicate parameter/local variable declaration	A local cannot redeclare its own function parameter
+invalid/16-duplicate-functions.spl	REJECT	#f	Duplicate function declaration	No duplicate function names in one immediate list
+invalid/17-return-type-is-not-overloading.spl	REJECT	#f	Duplicate function declaration	Return type does not permit overloading
+invalid/18-arity-is-not-overloading.spl	REJECT	#f	Duplicate function declaration	Parameter count does not permit overloading
+invalid/19-duplicate-child-functions.spl	REJECT	#f	Duplicate function declaration	Nested immediate declaration lists also require uniqueness
+invalid/20-direct-recursion.spl	REJECT	#f	Forbidden function call	A function cannot call itself
+invalid/21-recursive-return-call.spl	REJECT	#f	Forbidden function call	A numeric return cannot call the same function
+invalid/22-mutual-recursion.spl	REJECT	#f	Forbidden function call	Indirect recursion through a child is forbidden
+invalid/23-sibling-call.spl	REJECT	#f	Forbidden function call	A sibling is not in the caller body immediate F_DECL
+invalid/24-ancestor-call.spl	REJECT	#outer	Forbidden function call	A child cannot call its enclosing function
+invalid/25-skip-to-grandchild.spl	REJECT	#inner	Forbidden function call	Main cannot directly call a grandchild
+invalid/26-global-shared-helper.spl	REJECT	#helper	Forbidden function call	A function cannot call a main-level helper sibling
+invalid/27-other-parents-helper.spl	REJECT	#helper	Forbidden function call	A helper under another parent is inaccessible
+invalid/28-undeclared-function.spl	REJECT	#missing	Forbidden function call	Calls need immediate declarations
+invalid/29-variable-is-not-callable.spl	REJECT	#f	Forbidden function call	A variable spelling does not provide a function declaration
+invalid/30-function-is-not-variable.spl	REJECT	#f	Undeclared variable	A function declaration does not provide a variable declaration
+invalid/31-function-is-not-assignment-target.spl	REJECT	#f	Undeclared variable	Assignment searches the variable namespace
+invalid/32-ancestor-call-in-return.spl	REJECT	#outer	Forbidden function call	Return expressions obey the same function-call hierarchy
+invalid/33-forbidden-call-in-condition.spl	REJECT	#f	Forbidden function call	Calls inside conditions obey the hierarchy

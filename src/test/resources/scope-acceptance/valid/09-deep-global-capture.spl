@@ -1,0 +1,8 @@
+#x : void #outer ( ) {
+: void #inner ( ) {
+: : print ( #x ) ;
+return
+} : #inner ( ) ;
+return
+} : #x = 7 ;
+#outer ( ) ;

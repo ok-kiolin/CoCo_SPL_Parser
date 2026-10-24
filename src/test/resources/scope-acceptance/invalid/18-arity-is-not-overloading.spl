@@ -1,0 +1,5 @@
+: void #f ( #a ) {
+: : return
+} void #f ( #a #b ) {
+: : return
+} :
