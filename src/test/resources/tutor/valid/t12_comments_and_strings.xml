@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root id="1" contents="SPL_PROG" children="2">
+  <inner id="2" contents="P" parent="1" children="3 6 7 8 9">
+    <inner id="3" contents="V_DECL" parent="2" children="4 5">
+      <leaf id="4" contents="#x" parent="3"/>
+      <inner id="5" contents="V_DECL" parent="3" children=""/>
+    </inner>
+    <leaf id="6" contents=":" parent="2"/>
+    <inner id="7" contents="F_DECL" parent="2" children=""/>
+    <leaf id="8" contents=":" parent="2"/>
+    <inner id="9" contents="ALGO" parent="2" children="10 13 14">
+      <inner id="10" contents="INSTR" parent="9" children="11 12">
+        <leaf id="11" contents="comment" parent="10"/>
+        <leaf id="12" contents="&quot;start&quot;" parent="10"/>
+      </inner>
+      <leaf id="13" contents=";" parent="9"/>
+      <inner id="14" contents="ALGO" parent="9" children="15 19 20">
+        <inner id="15" contents="INSTR" parent="14" children="16 17">
+          <leaf id="16" contents="print" parent="15"/>
+          <inner id="17" contents="OUTP" parent="15" children="18">
+            <leaf id="18" contents="&quot;a,b.c:d-e?f!&quot;" parent="17"/>
+          </inner>
+        </inner>
+        <leaf id="19" contents=";" parent="14"/>
+        <inner id="20" contents="ALGO" parent="14" children="21 25 26">
+          <inner id="21" contents="INSTR" parent="20" children="22 23">
+            <leaf id="22" contents="print" parent="21"/>
+            <inner id="23" contents="OUTP" parent="21" children="24">
+              <leaf id="24" contents="&quot;&quot;" parent="23"/>
+            </inner>
+          </inner>
+          <leaf id="25" contents=";" parent="20"/>
+          <inner id="26" contents="ALGO" parent="20" children="27 31 32">
+            <inner id="27" contents="INSTR" parent="26" children="28 29">
+              <leaf id="28" contents="print" parent="27"/>
+              <inner id="29" contents="OUTP" parent="27" children="30">
+                <leaf id="30" contents="&quot;123&quot;" parent="29"/>
+              </inner>
+            </inner>
+            <leaf id="31" contents=";" parent="26"/>
+            <inner id="32" contents="ALGO" parent="26" children="33 36 37">
+              <inner id="33" contents="INSTR" parent="32" children="34 35">
+                <leaf id="34" contents="comment" parent="33"/>
+                <leaf id="35" contents="&quot;version-2.1:final!&quot;" parent="33"/>
+              </inner>
+              <leaf id="36" contents=";" parent="32"/>
+              <inner id="37" contents="ALGO" parent="32" children="38 44 45">
+                <inner id="38" contents="INSTR" parent="37" children="39">
+                  <inner id="39" contents="ASSIGN" parent="38" children="40 41 42">
+                    <leaf id="40" contents="#x" parent="39"/>
+                    <leaf id="41" contents="=" parent="39"/>
+                    <inner id="42" contents="TERM" parent="39" children="43">
+                      <leaf id="43" contents="1" parent="42"/>
+                    </inner>
+                  </inner>
+                </inner>
+                <leaf id="44" contents=";" parent="37"/>
+                <inner id="45" contents="ALGO" parent="37" children="46 49 50">
+                  <inner id="46" contents="INSTR" parent="45" children="47 48">
+                    <leaf id="47" contents="comment" parent="46"/>
+                    <leaf id="48" contents="&quot;end.&quot;" parent="46"/>
+                  </inner>
+                  <leaf id="49" contents=";" parent="45"/>
+                  <inner id="50" contents="ALGO" parent="45" children=""/>
+                </inner>
+              </inner>
+            </inner>
+          </inner>
+        </inner>
+      </inner>
+    </inner>
+  </inner>
+</root>

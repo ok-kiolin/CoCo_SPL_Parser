@@ -1,0 +1,6 @@
+#x : 
+num #f ( #p ) { : : return ( neg ( #p ) ) } 
+:
+comment "computesstuff" ;
+#x = add ( mul ( 2 3 ) div ( #f ( 10 ) 0.5 ) ) ;
+print ( #x ) ;

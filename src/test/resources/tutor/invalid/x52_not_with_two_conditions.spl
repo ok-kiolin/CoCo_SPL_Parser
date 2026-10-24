@@ -1,0 +1,2 @@
+: :
+if not ( eq ( 1 1 ) eq ( 2 2 ) ) then { } else { } ;

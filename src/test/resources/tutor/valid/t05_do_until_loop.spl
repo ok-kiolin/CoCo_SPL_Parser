@@ -1,0 +1,8 @@
+#n :
+:
+#n = 5 ;
+do {
+  print ( #n ) ;
+  #n = sub ( #n 1 ) ;
+} until eq ( #n 0 ) ;
+print "done" ;

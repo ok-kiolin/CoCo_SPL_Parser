@@ -1,0 +1,6 @@
+# #print #if #123 #a1b2 :
+:
+# = 1 ;
+#print = # ;
+#if = add ( #print #123 ) ;
+#a1b2 = #if ;

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root id="1" contents="SPL_PROG" children="2">
+  <inner id="2" contents="P" parent="1" children="3 4 5 6 7">
+    <inner id="3" contents="V_DECL" parent="2" children=""/>
+    <leaf id="4" contents=":" parent="2"/>
+    <inner id="5" contents="F_DECL" parent="2" children=""/>
+    <leaf id="6" contents=":" parent="2"/>
+    <inner id="7" contents="ALGO" parent="2" children="8 12 13">
+      <inner id="8" contents="INSTR" parent="7" children="9 10">
+        <leaf id="9" contents="print" parent="8"/>
+        <inner id="10" contents="OUTP" parent="8" children="11">
+          <leaf id="11" contents="&quot;hello&quot;" parent="10"/>
+        </inner>
+      </inner>
+      <leaf id="12" contents=";" parent="7"/>
+      <inner id="13" contents="ALGO" parent="7" children=""/>
+    </inner>
+  </inner>
+</root>

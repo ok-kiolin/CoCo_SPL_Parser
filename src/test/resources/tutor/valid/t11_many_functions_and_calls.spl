@@ -1,0 +1,10 @@
+#x #y :
+void #a ( ) { : : nop ; return }
+void #b ( #p ) { : : print ( #p ) ; return }
+num #c ( ) { : : return ( 42 ) }
+num #d ( #p #q #r ) { : : return ( add ( #p add ( #q #r ) ) ) }
+:
+#a ( ) ;
+#b ( #c ( ) ) ;
+#x = #d ( 1 2 3 ) ;
+#y = #d ( #x #c ( ) neg ( 1 ) ) ;
