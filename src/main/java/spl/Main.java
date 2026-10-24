@@ -203,8 +203,7 @@ public final class Main {
     }
 
     private static void usage(PrintStream stream) {
-        stream.println("Usage: java -jar group-5.jar [--compile|--check|--frontend-only] [SPL.txt [tree.xml]]");
-        stream.println("Default: full compilation to tree.xml and target.cpp beside the input.");
+        stream.println("Usage: java -jar spl-parser.jar [--compile|--check|--frontend-only] [SPL.txt [tree.xml]]");        stream.println("Default: full compilation to tree.xml and target.cpp beside the input.");
         stream.println("--check: names and types only. --frontend-only: syntax and XML only.");
         stream.println("No input argument: look for SPL.txt. Put paths containing spaces in quotes.");
     }
