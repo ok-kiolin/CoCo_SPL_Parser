@@ -1,0 +1,5 @@
+: num #outer ( #p ) {
+: num #inner ( ) {
+: : return ( #p )
+} : return ( #inner ( ) )
+} : print ( #outer ( 7 ) ) ;

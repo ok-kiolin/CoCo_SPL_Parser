@@ -1,0 +1,4 @@
+: void #show ( #p ) {
+: : print ( #p ) ;
+return
+} : #show ( 2 ) ;

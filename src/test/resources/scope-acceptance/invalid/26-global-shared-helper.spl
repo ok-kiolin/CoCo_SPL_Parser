@@ -1,0 +1,6 @@
+: void #helper ( ) {
+: : return
+} void #outer ( ) {
+: : #helper ( ) ;
+return
+} : #outer ( ) ;

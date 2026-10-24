@@ -1,0 +1,6 @@
+: num #f ( #p ) {
+: : return ( #p )
+} num #g ( #p ) {
+: : return ( #p )
+} : print ( #f ( 1 ) ) ;
+print ( #g ( 2 ) ) ;
