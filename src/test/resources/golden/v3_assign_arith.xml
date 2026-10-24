@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root id="1" contents="SPL_PROG" children="2">
+  <inner id="2" contents="P" parent="1" children="3 8 9 10 11">
+    <inner id="3" contents="V_DECL" parent="2" children="4 5">
+      <leaf id="4" contents="#a" parent="3"/>
+      <inner id="5" contents="V_DECL" parent="3" children="6 7">
+        <leaf id="6" contents="#b" parent="5"/>
+        <inner id="7" contents="V_DECL" parent="5" children=""/>
+      </inner>
+    </inner>
+    <leaf id="8" contents=":" parent="2"/>
+    <inner id="9" contents="F_DECL" parent="2" children=""/>
+    <leaf id="10" contents=":" parent="2"/>
+    <inner id="11" contents="ALGO" parent="2" children="12 18 19">
+      <inner id="12" contents="INSTR" parent="11" children="13">
+        <inner id="13" contents="ASSIGN" parent="12" children="14 15 16">
+          <leaf id="14" contents="#a" parent="13"/>
+          <leaf id="15" contents="=" parent="13"/>
+          <inner id="16" contents="TERM" parent="13" children="17">
+            <leaf id="17" contents="5" parent="16"/>
+          </inner>
+        </inner>
+      </inner>
+      <leaf id="18" contents=";" parent="11"/>
+      <inner id="19" contents="ALGO" parent="11" children="20 32 33">
+        <inner id="20" contents="INSTR" parent="19" children="21">
+          <inner id="21" contents="ASSIGN" parent="20" children="22 23 24">
+            <leaf id="22" contents="#b" parent="21"/>
+            <leaf id="23" contents="=" parent="21"/>
+            <inner id="24" contents="TERM" parent="21" children="25 26 27 29 31">
+              <leaf id="25" contents="add" parent="24"/>
+              <leaf id="26" contents="(" parent="24"/>
+              <inner id="27" contents="TERM" parent="24" children="28">
+                <leaf id="28" contents="#a" parent="27"/>
+              </inner>
+              <inner id="29" contents="TERM" parent="24" children="30">
+                <leaf id="30" contents="3" parent="29"/>
+              </inner>
+              <leaf id="31" contents=")" parent="24"/>
+            </inner>
+          </inner>
+        </inner>
+        <leaf id="32" contents=";" parent="19"/>
+        <inner id="33" contents="ALGO" parent="19" children="34 41 42">
+          <inner id="34" contents="INSTR" parent="33" children="35 36">
+            <leaf id="35" contents="print" parent="34"/>
+            <inner id="36" contents="OUTP" parent="34" children="37 38 40">
+              <leaf id="37" contents="(" parent="36"/>
+              <inner id="38" contents="TERM" parent="36" children="39">
+                <leaf id="39" contents="#b" parent="38"/>
+              </inner>
+              <leaf id="40" contents=")" parent="36"/>
+            </inner>
+          </inner>
+          <leaf id="41" contents=";" parent="33"/>
+          <inner id="42" contents="ALGO" parent="33" children=""/>
+        </inner>
+      </inner>
+    </inner>
+  </inner>
+</root>

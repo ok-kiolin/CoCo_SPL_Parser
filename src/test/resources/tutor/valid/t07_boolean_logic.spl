@@ -1,0 +1,7 @@
+#a #b :
+:
+#a = 1 ;
+#b = 2 ;
+if and ( lesser ( #a #b ) not ( eq ( #a #b ) ) ) then { print "yes" ; } else { print "no" ; } ;
+if or ( larger ( #a #b ) and ( eq ( #a 1 ) eq ( #b 2 ) ) ) then { print "ok" ; } else { nop ; } ;
+if not ( not ( eq ( #a #a ) ) ) then { nop ; } else { nop ; } ;

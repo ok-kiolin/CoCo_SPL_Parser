@@ -1,0 +1,10 @@
+#n #f #i :
+num #fact ( #k ) { #acc #j : : #acc = 1 ; #j = 1 ; while lesser ( #j add ( #k 1 ) ) do { #acc = mul ( #acc #j ) ; #j = add ( #j 1 ) ; } ; return ( #acc ) }
+void #report ( #v ) { : : if larger ( #v 100 ) then { print "big" ; } else { print "small" ; } ; return }
+:
+#n = 5 ;
+#f = #fact ( #n ) ;
+#report ( #f ) ;
+#i = 0 ;
+do { #i = add ( #i 1 ) ; } until eq ( #i #n ) ;
+print ( #f ) ;

@@ -1,0 +1,9 @@
+#i #sum :
+:
+#i = 0 ;
+#sum = 0 ;
+while lesser ( #i 10 ) do {
+  #sum = add ( #sum #i ) ;
+  #i = add ( #i 1 ) ;
+} ;
+print ( #sum ) ;
