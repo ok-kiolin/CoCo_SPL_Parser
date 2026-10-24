@@ -1,0 +1,11 @@
+: void #f ( ) {
+: void #g ( ) {
+#x : : #x = 1 ;
+return
+} : return
+} void #h ( ) {
+: void #k ( ) {
+: : print ( #x ) ;
+return
+} : return
+} :

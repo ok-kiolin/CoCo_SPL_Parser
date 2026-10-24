@@ -1,0 +1,5 @@
+: num #f ( #p ) {
+: : return ( #p )
+} num #g ( ) {
+: : return ( 3 )
+} : print ( #f ( #g ( ) ) ) ;

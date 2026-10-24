@@ -1,0 +1,6 @@
+: num #outer ( ) {
+#same : num #same ( ) {
+: : return ( #same )
+} : #same = 3 ;
+return ( #same ( ) )
+} : print ( #outer ( ) ) ;

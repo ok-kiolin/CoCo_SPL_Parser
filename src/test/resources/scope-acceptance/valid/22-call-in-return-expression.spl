@@ -1,0 +1,5 @@
+: num #f ( #p ) {
+: num #g ( #q ) {
+: : return ( add ( #q 1 ) )
+} : return ( mul ( #g ( #p ) 2 ) )
+} : print ( #f ( 3 ) ) ;

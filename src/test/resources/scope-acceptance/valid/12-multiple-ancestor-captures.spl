@@ -1,0 +1,6 @@
+: num #outer ( #p ) {
+#x : num #inner ( #q ) {
+: : return ( add ( #p add ( #x #q ) ) )
+} : #x = 3 ;
+return ( #inner ( 4 ) )
+} : print ( #outer ( 2 ) ) ;
