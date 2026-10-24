@@ -1,0 +1,1 @@
+: num #m ( ) { : : return ( mod ( 7 2 ) ) } num #d ( ) { : : return ( div ( 7 2 ) ) } :

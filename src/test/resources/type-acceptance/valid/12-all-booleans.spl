@@ -1,0 +1,1 @@
+#x : : #x = 1 ; if and ( eq ( #x 1 ) or ( larger ( #x 0 ) not ( lesser ( #x 2 ) ) ) ) then { nop ; } else { nop ; } ;

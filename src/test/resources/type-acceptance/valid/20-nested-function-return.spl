@@ -1,0 +1,1 @@
+: num #outer ( #x ) { : num #inner ( #y ) { : : return ( add ( #x #y ) ) } : return ( #inner ( 2 ) ) } : print ( #outer ( 3 ) ) ;

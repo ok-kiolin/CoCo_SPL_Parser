@@ -1,0 +1,1 @@
+: void #p ( #a #b ) { : : return } : #p ( 1 ) ;
